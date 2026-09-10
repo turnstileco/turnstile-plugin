@@ -1,0 +1,51 @@
+# On a v* tag: package every skill folder into a versioned .skill bundle and
+# attach the bundles to a GitHub Release. Those release assets are the
+# canonical download URLs for the claude.ai-web upload path — build once,
+# GitHub hosts, no manual re-zipping. Tag only from main; tag = plugin version
+# while this repo holds one plugin (see SPEC.md).
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Package skills
+        run: |
+          # --require-surface claude-ai: a .skill bundle exists for exactly one
+          # reason, the claude.ai web upload path. A skill that declares
+          # `surfaces: claude-code` runs `gh`, `claude mcp add` and
+          # `claude plugin install` — meaningless on claude.ai — so packaging it
+          # would attach a release asset that cannot work. Absent `surfaces:`
+          # means all surfaces, so every skill without the key packages.
+          shopt -s nullglob
+          mkdir -p dist
+          n=0
+          for d in plugins/*/skills/*/; do
+            [ -f "${d}SKILL.md" ] || continue
+            python3 scripts/package_skill.py "$d" --out dist --require-surface claude-ai
+            n=$((n+1))
+          done
+          echo "considered $n skill(s); packaged $(ls -1 dist/*.skill 2>/dev/null | wc -l)"
+
+      - name: Create GitHub Release with .skill assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          assets=(dist/*.skill)
+          if [ ${#assets[@]} -eq 0 ]; then
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" \
+              --notes "Infrastructure-only release: no packaged skills at this tag."
+          else
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+              --title "$GITHUB_REF_NAME" --generate-notes
+          fi

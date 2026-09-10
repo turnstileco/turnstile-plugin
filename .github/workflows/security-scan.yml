@@ -1,0 +1,106 @@
+# Runs the security scanner against a pull request, from the BASE ref.
+#
+# WHY pull_request_target AND NOT pull_request
+# --------------------------------------------
+# On `pull_request`, GitHub runs the workflow file *from the PR's own branch*.
+# A pull request can therefore edit this file, weaken the scanner it calls, or
+# delete the job outright — and the green check still appears. That check is not
+# trustworthy. Code-owner review catches it at merge; the check itself does not.
+#
+# On `pull_request_target`, GitHub runs the workflow file **from the base branch**
+# (`main`). A PR cannot change what runs here. That is the whole point: delete
+# this job on a branch, and the gate still runs.
+#
+# WHY pull_request_target IS SAFE HERE, AND WHEN IT WOULD NOT BE
+# --------------------------------------------------------------
+# `pull_request_target` executes with the base repo's context. Misused, it hands a
+# fork's code a writable token — it is a well-known escalation. Three constraints
+# make it safe, and all three are load-bearing:
+#
+#   1. `permissions: contents: read` — nothing this job does can write.
+#   2. No secrets are referenced. There is no secret for PR content to steal.
+#   3. PR content is checked out as **data** into `pr-content/` and is NEVER
+#      executed. Every script that runs comes from the base checkout. The PR
+#      checkout gets `persist-credentials: false`, so no token is left in its
+#      .git/config for a later step to find.
+#
+# If you ever add a build step, a dependency install, or anything that runs code
+# from `pr-content/`, this file becomes a remote-code-execution vector against the
+# repository. Don't.
+name: security-scan
+
+on:
+  pull_request_target:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      # Base ref: the trusted tooling. Checked out first, at the repo root, so
+      # `scripts/scan_skill.py` below is unambiguously main's copy.
+      - uses: actions/checkout@v7
+
+      # PR content: data. Never executed, never trusted, never given a token.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr-content
+          persist-credentials: false
+
+      - name: Deterministic scan (trusted scanner, PR content as data)
+        run: |
+          # Exits 1 on any HIGH finding. MEDIUM findings are recorded for a human
+          # to rule on (SPEC.md: a High finding blocks; a clean scan is not a
+          # pass). A repo with no skills yet scans as a clean no-op.
+          python3 scripts/scan_skill.py --root pr-content --fail-on high
+
+      - name: Subagent tools may not widen beyond Read, Grep, Glob
+        run: |
+          # A project subagent runs in a maintainer's Claude Code session the
+          # moment they check out the branch. A PR that adds `Bash` to an agent's
+          # `tools:` is granting itself a shell on that machine.
+          #
+          # Read from PR content deliberately: we are inspecting what the PR
+          # DECLARES, as text. We never load or execute it.
+          shopt -s nullglob
+          agents=(pr-content/.claude/agents/*.md)
+          if [ ${#agents[@]} -eq 0 ]; then
+            echo "no project subagents in this PR"
+            exit 0
+          fi
+          fail=0
+          for f in "${agents[@]}"; do
+            tools=$(sed -nE 's/^tools:[[:space:]]*(.*)$/\1/p' "$f" | head -1)
+            if [ -z "$tools" ]; then
+              echo "::error file=$f::declares no tools: list — a subagent with no tools: inherits every tool, including Bash"
+              fail=1
+              continue
+            fi
+            IFS=',' read -ra granted <<< "$tools"
+            for t in "${granted[@]}"; do
+              t=$(echo "$t" | tr -d '[:space:]')
+              [ -n "$t" ] || continue
+              case "$t" in
+                Read|Grep|Glob) ;;
+                *) echo "::error file=$f::grants '$t'. Review subagents in this repo are read-only (Read, Grep, Glob). Widening this needs a human decision, not a merge."
+                   fail=1 ;;
+              esac
+            done
+            echo "ok: $f -> $tools"
+          done
+          exit $fail
+
+      - name: Tooling skills in the PR conform
+        run: |
+          # Same lane as validate.yml, but run from the BASE checkout's validator
+          # against PR content — so a PR cannot relax the validator that checks it.
+          shopt -s nullglob
+          dirs=(pr-content/.claude/skills/*/)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "no tooling skills in this PR"
+            exit 0
+          fi
+          python3 scripts/validate_skill.py --tooling "${dirs[@]}"

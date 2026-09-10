@@ -1,0 +1,37 @@
+name: Skill request
+description: Ask for a skill that doesn't exist yet
+labels: ["skill request"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What question should it answer
+      description: >
+        A skill answers one question. Write it as the question you'd actually
+        ask — "which invoices are stuck and why", not "invoice tooling".
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you answer it today
+      description: The app, a spreadsheet, asking someone. Include what's slow or error-prone about it.
+    validations:
+      required: true
+
+  - type: input
+    id: frequency
+    attributes:
+      label: How often do you need it
+      placeholder: every Monday / at month end / before every renewal call
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: writes
+    attributes:
+      label: Does answering it require changing anything in Turnstile
+      options:
+        - label: No — read only
+        - label: Yes — it would issue, send, or update something

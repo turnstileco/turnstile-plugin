@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "turnstile",
+  "description": "Turnstile's plugin for AI assistants: the hosted Turnstile MCP server plus the skills that drive it.",
+  "owner": {
+    "name": "Turnstile",
+    "url": "https://github.com/turnstileco"
+  },
+  "plugins": [
+    {
+      "name": "turnstile",
+      "description": "Revenue skills for Turnstile customers — dashboards, reports, and workflows over the hosted Turnstile MCP server.",
+      "category": "productivity",
+      "source": "./plugins/turnstile"
+    }
+  ]
+}

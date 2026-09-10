@@ -1,0 +1,59 @@
+name: Bug report
+description: A skill or the Turnstile connection behaved wrongly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please don't paste customer data, invoice contents, or anything from
+        your Turnstile account into this issue. Describe the shape of the
+        problem instead. Please don't report a security vulnerability here;
+        use your Turnstile support contact.
+
+  - type: input
+    id: skill
+    attributes:
+      label: Which skill
+      placeholder: turnstile-start-here
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where were you running it
+      options:
+        - Claude Code
+        - Claude web (claude.ai)
+        - Claude desktop
+        - Cowork
+        - Other (say which below)
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Which model
+      description: Skills behave differently across models, so this matters.
+      placeholder: Claude Opus 5
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you asked for, what the assistant did, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: trace
+    attributes:
+      label: What the assistant did, step by step
+      description: >
+        Which tools it called and in what order, if you can see them. This is
+        usually the difference between a report we can act on and one we can't.
+    validations:
+      required: false

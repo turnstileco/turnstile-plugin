@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # The workflows here run on every pull request, including pull requests from
+  # forks. Keeping the actions current is part of keeping that safe.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]

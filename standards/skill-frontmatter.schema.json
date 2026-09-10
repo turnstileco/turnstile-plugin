@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/turnstileco/turnstile-plugin/standards/skill-frontmatter.schema.json",
+  "title": "Turnstile skill frontmatter",
+  "description": "Machine-readable form of SPEC.md's metadata table. Validated in CI by scripts/validate_skill.py on every PR. The validator normalizes comma-separated string fields (persona, connectors, scopes) into arrays before validating against this schema. Extra metadata keys are allowed (e.g. inputs/outputs may live here or in the SKILL.md body while that open item is unsettled). See CONTRIBUTING.md for how schema changes are proposed.",
+  "type": "object",
+  "required": ["name", "description", "version", "metadata"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Must equal the skill folder name."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "description": "One-line what-it-does + when to use it, with trigger phrases. No XML/angle-bracket tags (breaks the claude.ai uploader)."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semver per SPEC.md. Official skills arrive in this repo at 1.0.0; a skill that has not cleared the release gate starts at 0.1.0."
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "class",
+        "persona",
+        "recipe-type",
+        "supervision",
+        "risk",
+        "access",
+        "connectors",
+        "scopes",
+        "owner",
+        "audience"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "class": {
+          "enum": ["deterministic-artifact", "generative-workflow"]
+        },
+        "persona": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["finance", "deal-maker", "cs-renewals", "marketing", "all"]
+          },
+          "description": "One or more roles, comma-separated in the YAML. 'all' is for skills that genuinely serve every role."
+        },
+        "recipe-type": {
+          "enum": ["skill", "scheduled-task", "artifact"]
+        },
+        "supervision": {
+          "enum": [
+            "review-before-running",
+            "runs-automatically",
+            "asks-before-each-action"
+          ]
+        },
+        "risk": {
+          "enum": ["low", "medium", "high"],
+          "description": "Canonical wire values for the standard's Low/Med/High."
+        },
+        "access": {
+          "enum": ["read-only", "read-write"]
+        },
+        "connectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "pattern": "^[^();:]+$"
+          },
+          "description": "Connector names beyond the Turnstile MCP, comma-separated in the YAML, or the single value 'none'. Qualifiers (optional/required, read scope) belong in the SKILL.md body, not here."
+        },
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 2,
+            "pattern": "^[^();:]+$|^[a-z]+:[a-z]+$"
+          },
+          "description": "Least-privilege Turnstile MCP scopes requested (e.g. invoices:read), comma-separated, or the single value 'none'."
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9-]+$",
+          "description": "A GitHub handle."
+        },
+        "audience": {
+          "enum": ["internal", "public-preview", "public"],
+          "description": "Required. Who the skill is for, and it must match where the skill lives: every skill in this repo declares 'public'. 'internal' and 'public-preview' are the values used before a skill is published (SPEC.md). The validator enforces the audience<->location pairing; the scaffold and tooling lanes are exempt."
+        },
+        "ported-to": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "Optional. URL of the public skill folder a port produced. Valid only with audience: internal — the validator enforces the pairing — so it never appears on a skill in this repo; it marks the internal original a public skill was ported from."
+        },
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": ["claude-ai", "cowork", "claude-code"]
+          },
+          "description": "Optional. The runtime surfaces the skill supports, comma-separated in the YAML — the machine-readable form of SPEC.md's required 'Runs on' declaration. ABSENT MEANS ALL SURFACES, which is why it is not in `required`: every skill that predates this key supports every surface. A skill that omits `claude-ai` is not packaged into a .skill by release.yml, because that download could not work."
+        }
+      }
+    }
+  }
+}

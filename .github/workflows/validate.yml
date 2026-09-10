@@ -1,0 +1,181 @@
+# Gates every PR (and pushes to main). Verifies, doesn't trust:
+# manifests parse, plugin versions are semver, every skill conforms to the
+# packaging/frontmatter rules, skill changes carry a changelog entry, and
+# skill changes since the last release carry a plugin version bump.
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: JSON manifests parse
+        run: |
+          shopt -s nullglob
+          for f in .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json plugins/*/.mcp.json standards/skill-frontmatter.schema.json; do
+            jq empty "$f" || { echo "::error file=$f::invalid JSON"; exit 1; }
+            echo "ok: $f"
+          done
+
+      - name: Plugin versions are semver
+        run: |
+          shopt -s nullglob
+          for f in plugins/*/.claude-plugin/plugin.json; do
+            v=$(jq -r '.version // empty' "$f")
+            echo "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+              || { echo "::error file=$f::version '$v' is not MAJOR.MINOR.PATCH"; exit 1; }
+            echo "ok: $f -> $v"
+          done
+
+      - name: Plugin changes since last release carry a plugin version bump
+        run: |
+          # SPEC.md: the plugin takes a bump when its contents change. Enforced
+          # against the last release tag (not the PR base) so one bump covers
+          # all skill changes between releases, and drift that slipped past
+          # this check gets flagged on the next PR instead of lost. Only files
+          # inside skill folders count — loose files under skills/ (like its
+          # README) are docs, not a consumable change to the plugin. Plugin-
+          # LEVEL files (plugin.json, .mcp.json) count too: plugin
+          # infrastructure changes bump the plugin directly.
+          shopt -s nullglob
+          last_tag=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          if [ -z "$last_tag" ]; then
+            echo "no release tag yet; nothing to compare against"
+            exit 0
+          fi
+          fail=0
+          for pj in plugins/*/.claude-plugin/plugin.json; do
+            plugin_dir=${pj%/.claude-plugin/plugin.json}
+            git diff --name-only "$last_tag" HEAD -- "$plugin_dir" \
+              | grep -Eq "^$plugin_dir/(skills/[^/]+/|\.claude-plugin/|\.mcp\.json)" || continue
+            old=$(git show "$last_tag:$pj" 2>/dev/null | jq -r '.version // empty' || true)
+            [ -n "$old" ] || continue  # plugin didn't exist at the last release
+            new=$(jq -r '.version // empty' "$pj")
+            if [ "$old" = "$new" ]; then
+              echo "::error file=$pj::$plugin_dir changed since $last_tag but the plugin version is still $new — bump it (SPEC.md)"
+              fail=1
+            else
+              echo "ok: $plugin_dir changed since $last_tag, version $old -> $new"
+            fi
+          done
+          exit $fail
+
+      - name: Skills conform (frontmatter, semver, layout)
+        run: |
+          shopt -s nullglob
+          n=0
+          for d in plugins/*/skills/*/; do
+            [ -f "${d}SKILL.md" ] || continue
+            python3 scripts/package_skill.py "$d" --check
+            n=$((n+1))
+          done
+          echo "$n skill(s) checked"
+
+      - name: Skills conform to the frontmatter schema (SPEC.md)
+        run: |
+          # Full metadata-block validation against
+          # standards/skill-frontmatter.schema.json — canonical enum values,
+          # parseable connectors/scopes lists, references/ layout, ride-along
+          # files, inputs/outputs presence. package_skill.py's flat parser
+          # can't see the nested metadata keys; this one does.
+          #
+          # The empty-glob guard is load-bearing: this repo starts with zero
+          # resident skills, and validate_skill.py exits 2 when it gets no
+          # directory at all (same pattern as the tooling lane below).
+          shopt -s nullglob
+          dirs=(plugins/*/skills/*/)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "no distributed skills yet; nothing to check"
+            exit 0
+          fi
+          python3 scripts/validate_skill.py "${dirs[@]}"
+
+      - name: validate_skill.py's own tests pass (audience <-> location)
+        run: |
+          # The audience rules carry the internal/public split: a regression
+          # there mis-labels what may reach a customer, and resident skills
+          # can't catch it (they are all correctly paired). The committed
+          # test cases exercise the wrong pairs too.
+          python3 scripts/test_validate_skill.py
+
+      - name: Tooling skills conform (SPEC.md, Authoring craft)
+        run: |
+          # Tier 2: .claude/skills/ is auto-discovered when someone opens this
+          # repo. It is never packaged or published, so it has no metadata
+          # block, no version, no CHANGELOG and no freshness check.
+          #
+          # The empty-glob guard is load-bearing: this lane exists before any
+          # tooling skill does, and validate_skill.py exits 2 when it gets a
+          # flag and no directory.
+          shopt -s nullglob
+          dirs=(.claude/skills/*/)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "no tooling skills yet; nothing to check"
+            exit 0
+          fi
+          python3 scripts/validate_skill.py --tooling "${dirs[@]}"
+
+      - name: The scaffold conforms too
+        run: |
+          # The template's metadata values are `a | b | c` placeholders, so
+          # --scaffold checks that every metadata key is present without
+          # validating the enums. Every other rule — layout, ride-along files,
+          # inputs/outputs, freshness check — is enforced exactly as for a real
+          # skill. A scaffold that fails the SPEC teaches every builder to
+          # fail it too, so the scaffold is gated like a skill.
+          python3 scripts/validate_skill.py --scaffold template/skill-name/
+
+      - name: Skill changes carry a changelog entry
+        if: github.event_name == 'pull_request'
+        run: |
+          base="origin/${{ github.base_ref }}"
+          changed=$(git diff --name-only "$base"...HEAD)
+          fail=0
+          for dir in $(echo "$changed" | grep -oE '^plugins/[^/]+/skills/[^/]+' | sort -u); do
+            [ -d "$dir" ] || continue  # deleted skill: changelog lives in the PR description
+            if ! echo "$changed" | grep -q "^$dir/CHANGELOG.md$"; then
+              echo "::error::$dir changed without updating $dir/CHANGELOG.md"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Skill changes carry a skill version bump
+        if: github.event_name == 'pull_request'
+        run: |
+          # SPEC.md: an edit to a shipped skill bumps that skill's own version.
+          # Without this a skill could change, get a changelog entry, and keep
+          # a stale `version:` — silently nonconformant, and the .skill asset
+          # name would lie about it.
+          #
+          # Measured against the merge base, like the changelog gate: the
+          # question is "did THIS PR bump," not "has anything bumped since the
+          # last release." A new skill has no version at the merge base and is
+          # skipped; so is a deleted one.
+          base="origin/${{ github.base_ref }}"
+          merge_base=$(git merge-base "$base" HEAD)
+          changed=$(git diff --name-only "$merge_base" HEAD)
+          fail=0
+          ver() { sed -nE 's/^version:[[:space:]]*"?([0-9]+\.[0-9]+\.[0-9]+)"?.*/\1/p' | head -1; }
+          for dir in $(echo "$changed" | grep -oE '^plugins/[^/]+/skills/[^/]+' | sort -u); do
+            [ -d "$dir" ] || continue
+            new=$(ver < "$dir/SKILL.md")
+            old=$(git show "$merge_base:$dir/SKILL.md" 2>/dev/null | ver || true)
+            if [ -z "$old" ]; then
+              echo "ok: $dir is new at $new"
+            elif [ "$old" = "$new" ]; then
+              echo "::error file=$dir/SKILL.md::$dir changed but its version: is still $old — bump it (SPEC.md)"
+              fail=1
+            else
+              echo "ok: $dir $old -> $new"
+            fi
+          done
+          exit $fail

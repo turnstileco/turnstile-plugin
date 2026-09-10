@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "turnstile": {
+      "type": "http",
+      "url": "https://mcp.app.turnstile.ai/mcp"
+    }
+  }
+}

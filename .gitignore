@@ -1,0 +1,9 @@
+# build artifacts — .skill bundles are built by CI, never committed
+dist/
+*.skill
+*.zip
+
+# os / tooling noise
+.DS_Store
+__pycache__/
+*.pyc

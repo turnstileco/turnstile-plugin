@@ -1,0 +1,6 @@
+# Turnstile's skill maintainers own everything in this repo. Membership is
+# managed in the GitHub org (the @turnstileco/skill-maintainers team), not in
+# this file — a maintainer change is a team change, never a CODEOWNERS PR.
+# With require_code_owner_reviews enabled on main, a contributor PR merges
+# only with an approving review from a maintainer.
+* @turnstileco/skill-maintainers

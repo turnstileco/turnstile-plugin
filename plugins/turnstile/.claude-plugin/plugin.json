@@ -1,0 +1,22 @@
+{
+  "name": "turnstile",
+  "displayName": "Turnstile",
+  "version": "1.0.0",
+  "description": "Revenue skills for Turnstile customers — dashboards, reports, and workflows that ride on the hosted Turnstile MCP server.",
+  "author": {
+    "name": "Turnstile",
+    "url": "https://github.com/turnstileco"
+  },
+  "homepage": "https://github.com/turnstileco/turnstile-plugin",
+  "repository": "https://github.com/turnstileco/turnstile-plugin",
+  "license": "Apache-2.0",
+  "keywords": [
+    "turnstile",
+    "revenue",
+    "billing",
+    "invoices",
+    "subscriptions",
+    "skills",
+    "mcp"
+  ]
+}
