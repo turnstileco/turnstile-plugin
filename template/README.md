@@ -55,7 +55,7 @@ Ground rules ([SPEC.md](../SPEC.md) has the full set):
   in plain language for a human reader, not just for Claude: the
   GitHub-rendered `SKILL.md` is this repo's provider-agnostic view of the
   skill.
-- **The freshness check is optional** (SPEC.md, since Skill Standard v0.26).
+- **The freshness check is optional** (see SPEC.md).
   Plugin installs update on their own. Keep the short section only if the
   skill is distributed as a `.skill` upload; otherwise delete it.
 - **No committed preview screenshots** — the artifact is its own preview.

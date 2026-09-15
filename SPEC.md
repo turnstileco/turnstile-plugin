@@ -1,6 +1,6 @@
 # Turnstile Skill SPEC
 
-Digest of Skill Standard v0.26 (2026-09-09).
+Digest of the Turnstile Skill Standard, 2026-09-14.
 
 The enforceable digest of Turnstile's skill standard: every rule a skill in
 this repo is held to, in one file. `scripts/validate_skill.py` and
@@ -186,8 +186,21 @@ Rules that apply only from layer 3 up, verified in the emitted file:
   until the response's more-pages flag (`hasMore: false`) and never assumes
   one page is the whole set. A rule for artifact code, not a `SKILL.md`
   instruction (see *The MCP boundary*).
-- **Live Artifacts are desktop Cowork only**; a layer-4 artifact that
-  refreshes through a connector is tested there.
+- **An artifact never bakes in a connector's display name as a constant.**
+  A Claude Code artifact reaches a connector only by the names its
+  published manifest declares, resolved against what each viewer's own
+  settings call it; a mismatch fails with `server_not_connected`, and
+  `listTools()` cannot find a connector under another name. The name is an
+  input the skill asks for or defaults, written into manifest and page
+  from one source, printed by the page when it binds, and stated as a
+  limit in `## Boundaries` (a viewer whose connector is named differently
+  sees no data). TS-SEC-02 applied to names as well as ids.
+- **A connector-refreshed artifact is tested where it runs.** Two runtimes
+  exist: a Cowork Live Artifact (desktop only) or a Claude Code artifact
+  that declares the `mcp` capability, which addresses a connector by its
+  display name as each viewer sees it. A layer-4 skill names which one it
+  targets, and the Claude Code kind is tested on a second account before
+  it is called working.
 - **No committed preview images.** TS-SEC-08 … 11 apply to any emitted HTML.
 
 ## Write safety (verified against the live MCP)
