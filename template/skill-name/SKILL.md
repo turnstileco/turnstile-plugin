@@ -92,7 +92,7 @@ If not, it is not yet a skill (SPEC.md, "What a skill is").
 
 ## Freshness check (non-blocking)
 
-<!-- Optional since Skill Standard v0.26. Keep only if this skill is distributed
+<!-- Optional (see SPEC.md). Keep only if this skill is distributed
 as a .skill upload; plugin installs update on their own. Delete otherwise. -->
 
 At the start of a run, compare the frontmatter `version:` above to this skill's
