@@ -4,6 +4,15 @@ Newest first. Semver per [SPEC.md](../../../../SPEC.md): PATCH = fix or
 wording, MINOR = new backward-compatible capability, MAJOR = breaking. Every
 PR that touches this skill adds an entry here — CI checks.
 
+## 1.0.1 — 2026-09-19
+
+- **Removed references to skills that are not part of this plugin.** The routing table
+  carried a third column naming sibling skills. Those names do not resolve to anything a
+  reader of this plugin can install, so the column is gone and the table now maps each menu
+  pick to the reference that answers it. The paragraph explaining the column went with it.
+  No change to what the skill does or how it routes: every module still loads its own
+  reference, and the write-safety tiers are untouched.
+
 ## 1.0.0 — 2026-09-09
 
 First public release.

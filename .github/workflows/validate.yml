@@ -35,6 +35,38 @@ jobs:
             echo "ok: $f -> $v"
           done
 
+      - name: Plugin content changes bump that plugin in the same PR
+        if: github.event_name == 'pull_request'
+        run: |
+          # The same-PR check, and the stronger of the two. Organization-managed
+          # plugin distribution syncs when a pull request carrying a plugin
+          # version bump merges, so a content change that lands without one is
+          # invisible to everyone the plugin was pushed to until something
+          # unrelated bumps. The tag-based check below stays as the drift
+          # backstop for anything reaching main outside a PR; it cannot
+          # contradict this one, only miss what this one catches.
+          merge_base=$(git merge-base "origin/${{ github.base_ref }}" HEAD)
+          changed=$(git diff --name-only "$merge_base"...HEAD)
+          fail=0
+          for pj in plugins/*/.claude-plugin/plugin.json; do
+            plugin_dir=${pj%/.claude-plugin/plugin.json}
+            plugin=${plugin_dir#plugins/}
+            touched=$(echo "$changed" | grep -E "^plugins/$plugin/(skills/[^/]+/|\.claude-plugin/|\.mcp\.json)" || true)
+            [ -z "$touched" ] && continue
+            new=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['version'])" "$pj")
+            old=$(git show "$merge_base:$pj" 2>/dev/null \
+                  | python3 -c "import json,sys;print(json.load(sys.stdin)['version'])" 2>/dev/null || echo "")
+            if [ -z "$old" ]; then
+              echo "ok: $plugin is new in this PR"
+            elif [ "$new" = "$old" ]; then
+              echo "FAIL: $plugin content changed but its version is still $old"
+              fail=1
+            else
+              echo "ok: $plugin $old -> $new"
+            fi
+          done
+          [ "$fail" = "0" ]
+
       - name: Plugin changes since last release carry a plugin version bump
         run: |
           # SPEC.md: the plugin takes a bump when its contents change. Enforced

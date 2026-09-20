@@ -63,8 +63,11 @@ A pull request is untrusted content until it merges, and Claude Code loads
 
 Every skill-touching PR bumps that skill's version in `SKILL.md` frontmatter
 and adds a dated `CHANGELOG.md` entry — CI enforces the changelog. Write the
-changelog entry and the PR description as the same text. The plugin version
-bumps at release time by the highest-severity change among its skills.
+changelog entry and the PR description as the same text. **The plugin version
+bumps in the same PR that changes its content**, by the highest-severity change
+among its skills. Organization-managed plugin distribution syncs when a pull
+request carrying a plugin version bump merges, so a content change that lands
+without one can reach `main` and never reach anyone who installed the plugin.
 
 `standards/skill-frontmatter.schema.json` is maintained by Turnstile; schema
 changes ride along with the skill that needs them.

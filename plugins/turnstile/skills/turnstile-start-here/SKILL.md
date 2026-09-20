@@ -1,7 +1,7 @@
 ---
 name: turnstile-start-here
 description: "Orientation for the Turnstile MCP: what your connected tools can do, organized by the modules you know from the Turnstile app (quotes, subscriptions, invoices and billing, customers, catalog, reporting), with example prompts, read-vs-write safety guidance, and a starting menu. Use when someone is new to the Turnstile MCP, or asks 'what can I do with Turnstile', 'where do I start', 'show me the menu', 'what can this connector do', 'help me get started with Turnstile', or is about to take a first write action (issuing, sending, updating) through the Turnstile MCP."
-version: 1.0.0
+version: 1.0.1
 metadata:
   class: generative-workflow
   persona: all
@@ -163,22 +163,19 @@ what will happen first, and invoice actions check the invoice's own
 
 ## Routing: where the detail lives
 
-| Menu pick | Read this | Sibling skills, if installed |
-|---|---|---|
-| 1 Quotes | `references/domains/quotes.md` | — |
-| 2 Subscriptions | `references/domains/subscriptions.md` | renewals-overview, milestone-lapse-risk |
-| 3 Invoices & Billing | `references/domains/invoices-and-billing.md` | invoice-status-overview, days-to-pay-trend-report, turnstile-invoice-workflow |
-| 4 Customers | `references/domains/customers.md` | — |
-| 5 Catalog | `references/domains/catalog.md` | — |
-| 6 Reporting | `references/domains/reporting.md` | revenue-mom, usage-trend-report, turnstile-custom-revenue-analytics |
-| 7 Connect & verify | `references/domains/getting-set-up.md` | — |
-| 8 Learn the MCP | `references/write-safety.md`, then `references/workflows.md` | turnstile-briefing |
-| End-to-end recipes | `references/workflows.md` | — |
+| Menu pick | Read this |
+|---|---|
+| 1 Quotes | `references/domains/quotes.md` |
+| 2 Subscriptions | `references/domains/subscriptions.md` |
+| 3 Invoices & Billing | `references/domains/invoices-and-billing.md` |
+| 4 Customers | `references/domains/customers.md` |
+| 5 Catalog | `references/domains/catalog.md` |
+| 6 Reporting | `references/domains/reporting.md` |
+| 7 Connect & verify | `references/domains/getting-set-up.md` |
+| 8 Learn the MCP | `references/write-safety.md`, then `references/workflows.md` |
+| End-to-end recipes | `references/workflows.md` |
 
-Load the reference for the module in play — not all of them. A sibling skill
-column entry means: if that skill is installed in this session, offer it
-("there's a dedicated invoice-status report skill here — want me to use
-it?"); if it isn't installed, don't mention it.
+Load the reference for the module in play — not all of them.
 
 ## Boundaries
 
