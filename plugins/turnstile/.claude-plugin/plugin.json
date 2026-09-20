@@ -1,7 +1,7 @@
 {
   "name": "turnstile",
   "displayName": "Turnstile",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Revenue skills for Turnstile customers — dashboards, reports, and workflows that ride on the hosted Turnstile MCP server.",
   "author": {
     "name": "Turnstile",
