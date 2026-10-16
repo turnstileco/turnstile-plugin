@@ -21,7 +21,7 @@ billing side (what gets invoiced, when). Everywhere below we say "subscription."
 ## What these tools tell you
 
 - `Turnstile:list_turnstile_subscriptions` — all your subscriptions with status, customer,
-  and service dates. The starting point for "what's active?" and "what's expiring?"
+  and service dates. The starting point for "what's active?"
 - `Turnstile:get_turnstile_subscription` — one subscription in billing terms: total value,
   service dates, expiry, auto-renew, and its invoice history.
 - `Turnstile:list_turnstile_contracts` — the same agreements from the contract side,
@@ -38,9 +38,10 @@ billing side (what gets invoiced, when). Everywhere below we say "subscription."
   currency per total (`domains/reporting.md`).
 - **Same record, two lenses.** A subscription and its contract share an identity; getting
   "both" is not double-counting, it's the agreement view and the billing view of one deal.
-- **Renewal questions come from dates.** "What's up for renewal?" is answered by reading
-  end dates and auto-renew flags off the list — expect the assistant to walk the list rather than
-  query a special renewals report.
+- **Renewal questions have their own skill.** What renews in a window, what renews
+  without anyone acting, the contract value attached, churn risk at renewal, and what
+  has already lapsed are answered by the `renewals-overview` skill in this plugin, not
+  by walking the subscription list.
 - **A single subscription can carry a long invoice history.** If you only want the
   agreement itself — dates, value, renewal — say so, and the assistant can skip the invoice
   detail rather than wading through it.

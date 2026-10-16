@@ -1,7 +1,7 @@
 ---
 name: turnstile-start-here
 description: "Orientation for the Turnstile MCP: what your connected tools can do, organized by the modules you know from the Turnstile app (quotes, subscriptions, invoices and billing, customers, catalog, reporting), with example prompts, read-vs-write safety guidance, and a starting menu. Use when someone is new to the Turnstile MCP, or asks 'what can I do with Turnstile', 'where do I start', 'show me the menu', 'what can this connector do', 'help me get started with Turnstile', or is about to take a first write action (issuing, sending, updating) through the Turnstile MCP."
-version: 1.0.1
+version: 1.1.0
 metadata:
   class: generative-workflow
   persona: all
@@ -167,6 +167,7 @@ what will happen first, and invoice actions check the invoice's own
 |---|---|
 | 1 Quotes | `references/domains/quotes.md` |
 | 2 Subscriptions | `references/domains/subscriptions.md` |
+| 2 Subscriptions: renewal questions | The `renewals-overview` skill in this plugin |
 | 3 Invoices & Billing | `references/domains/invoices-and-billing.md` |
 | 4 Customers | `references/domains/customers.md` |
 | 5 Catalog | `references/domains/catalog.md` |
@@ -176,6 +177,10 @@ what will happen first, and invoice actions check the invoice's own
 | End-to-end recipes | `references/workflows.md` |
 
 Load the reference for the module in play — not all of them.
+
+A row that names a skill instead of a reference hands that question to the
+skill. If the named skill is not in this session, say it is not installed
+here, and do not build that answer from this skill's references.
 
 ## Boundaries
 

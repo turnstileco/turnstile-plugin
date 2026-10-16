@@ -1,18 +1,20 @@
 # Workflows
 
-Five end-to-end recipes for the jobs Turnstile customers run most. Each one names its
+Four end-to-end recipes for the jobs Turnstile customers run most. Each one names its
 trigger phrase, the steps the assistant takes, where it stops for your confirmation, and what
-the finished output looks like. Recipes 1, 4, and 5 are entirely read-only; recipes 2
+the finished output looks like. Recipes 1 and 4 are entirely read-only; recipes 2
 and 3 include actions that email customers, so they follow the confirmation rules in
 `references/write-safety.md` to the letter.
+
+Renewal questions have no recipe here: the `renewals-overview` skill in this plugin
+answers them.
 
 ## Contents
 
 - [1. Where does my pipeline stand?](#1-where-does-my-pipeline-stand)
 - [2. Month-end invoice review](#2-month-end-invoice-review)
 - [3. Collections chase](#3-collections-chase)
-- [4. Renewal check](#4-renewal-check)
-- [5. Usage sanity check](#5-usage-sanity-check)
+- [4. Usage sanity check](#4-usage-sanity-check)
 
 ## 1. Where does my pipeline stand?
 
@@ -81,27 +83,7 @@ the better first move. See `references/write-safety.md`.
 **Output:** an aging table — customer, invoice, amount, days outstanding, billing
 contact — plus a record of which invoices were re-sent, if any.
 
-## 4. Renewal check
-
-**Trigger:** *"What's coming up for renewal?"*
-
-1. `Turnstile:list_turnstile_contracts` — every subscription as an agreement record
-   (the MCP calls these "contracts"; same record, see `domains/subscriptions.md`), paged
-   to completeness, with each one's end date and value in hand.
-2. Filter to subscriptions ending inside your window (next 60 or 90 days, your call)
-   and sort by end date.
-3. For any subscription that deserves a closer look, `Turnstile:get_turnstile_contract`
-   for the full terms.
-
-**Safety stops:** none needed — read-only throughout. Renewing or amending a
-subscription is not part of this recipe; do that in the Turnstile app, or through
-contract write tools your session may carry, which are Tier 2 in
-`references/write-safety.md`.
-
-**Output:** a renewal runway — each expiring subscription with customer, end date, and
-annual value — plus the headline number: total ARR at stake in the window.
-
-## 5. Usage sanity check
+## 4. Usage sanity check
 
 **Trigger:** *"Does the usage on this subscription look right?"*
 

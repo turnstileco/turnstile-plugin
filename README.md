@@ -40,7 +40,9 @@ upload individual skills as `.skill` files from [Releases](../../releases).
 
 | Skill | What it answers | Version |
 |---|---|---|
-| [`turnstile-start-here`](plugins/turnstile/skills/turnstile-start-here/) | What can I do with Turnstile from here, and how do I do it safely? Maps the connection module by module, with example prompts and a starting menu. | 1.0.0 |
+| [`turnstile-start-here`](plugins/turnstile/skills/turnstile-start-here/) | What can I do with Turnstile from here, and how do I do it safely? Maps the connection module by module, with example prompts and a starting menu. | 1.1.0 |
+| [`renewals-overview`](plugins/turnstile/skills/renewals-overview/) | What is up for renewal, which of it is at risk, and how much contract value is attached to it? Renewals in a 30, 60 or 90 day window or a calendar period, current contract value at risk per currency, churn risk ranked from the billing record, and what has already lapsed. | 1.0.0 |
+| [`milestone-lapse-risk`](plugins/turnstile/skills/milestone-lapse-risk/) | Which subscriptions are waiting on a milestone, which will lapse because it isn't marked complete in time, and which already lapsed that way? Ranked by days left, with the amendment that recovers a lapse. | 1.0.0 |
 
 Start with `turnstile-start-here`. It's the front door: it describes what the
 connection can do in the same module language the Turnstile app uses, and it

@@ -4,6 +4,16 @@ Newest first. Semver per [SPEC.md](../../../../SPEC.md): PATCH = fix or
 wording, MINOR = new backward-compatible capability, MAJOR = breaking. Every
 PR that touches this skill adds an entry here — CI checks.
 
+## 1.1.0, 2026-10-16
+
+- **Renewal questions go to `renewals-overview`.** That skill ships in this plugin
+  from this release, so this skill no longer carries a renewal recipe of its own. The
+  routing table names it for renewal questions, the workflows reference drops its
+  renewal check, and the subscriptions reference no longer says to answer renewal
+  questions by walking the subscription list. When the renewals skill is not in a
+  session, this skill says so instead of building a renewal answer.
+- The usage sanity check is now workflow recipe 4.
+
 ## 1.0.1 — 2026-09-19
 
 - **Removed references to skills that are not part of this plugin.** The routing table
