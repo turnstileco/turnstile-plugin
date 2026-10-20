@@ -54,8 +54,8 @@ amending the subscription — extend the prior phase's duration, or remove the m
 ## Instructions
 
 1. **Take the scope from the request; ask only what's missing.** If the user named a customer, a
-   risk window, or asked specifically about lapsed-only or waiting-only, use that and ask nothing.
-   Otherwise default to the whole account with a 30-day risk window and report every group in step
+   risk window, or asked specifically about lapsed-only or waiting-only, use that and ask nothing,
+   except to confirm a customer name when step 2 says to. Otherwise default to the whole account with a 30-day risk window and report every group in step
    9. Ask (with `AskUserQuestion` where it exists, a plain question otherwise) only when the
    request is genuinely ambiguous about which groups they want.
 
@@ -64,11 +64,14 @@ amending the subscription — extend the prior phase's duration, or remove the m
    month, not 30 days from today. Say which period you used in the answer.
 
 2. **Resolve a named customer to an id.** Only if the user named one: call
-   `Turnstile:list_turnstile_customers` with `name: <what they said>` and `limit: 100`. One match whose name is what
-   they typed, use its id. One match that merely *contains* what they typed — `name` is a partial
-   match, so "Acme" also finds "Old Acme Holdings" — show it and ask before using it. Multiple
-   matches, list them and ask which — don't guess. No match, say so and offer to run account-wide
-   instead.
+   `Turnstile:list_turnstile_customers` with `name: <what they said>` and `limit: 100`. Settle the
+   customer before step 3: make no subscriptions call until it is settled. One match whose name is
+   exactly what they typed (ignoring case), use its id. One match that merely *contains* what they
+   typed — `name` is a partial match, so "Acme" also finds "Old Acme Holdings" — stop and ask "Did
+   you mean <full name>?" (with `AskUserQuestion` where it exists, a plain question otherwise)
+   before using it, even though the request named a customer. Telling the user which customer you
+   used after you have answered is not confirming. Multiple matches, list them and ask which — don't
+   guess. No match, say so and offer to run account-wide instead.
 
 3. **Fetch the subscriptions waiting on a milestone.** Call
    `Turnstile:list_turnstile_subscriptions` with `hasPendingMilestone: true` and `limit: 100`, adding
@@ -231,6 +234,9 @@ show each currency separately.
   a scheduling question for their own session, not something this skill configures.
 - **Marking a milestone complete is a write in Turnstile**, and out of scope here. Point the user at
   the subscription in Turnstile rather than offering to do it.
+- **Never scope to a customer the user hasn't confirmed.** A customer whose name only contains what
+  the user typed is confirmed with them (step 2) before any subscriptions call. An answer that names
+  the customer afterwards does not count as asking.
 - **Filtered calls only.** Every subscriptions call carries `hasPendingMilestone: true`; never list
   all subscriptions and sort milestones out afterward. If the number of detail calls in step 5 gets
   in the way, narrow with the step 4 question and tell the user plainly that volume is the

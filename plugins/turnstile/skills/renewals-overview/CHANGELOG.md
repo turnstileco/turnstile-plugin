@@ -12,6 +12,9 @@ First public release.
   calendar month or quarter, read live from your subscriptions with the window
   applied in the query rather than afterwards. A calendar period also lists what
   already lapsed earlier in that period.
+- **Asks before using a customer it only partly matched.** "Acme" finding "Old
+  Acme Holdings" gets a question first, and nothing is fetched for that customer
+  until the user confirms it. An exact match, ignoring case, goes straight through.
 - **The right renewal date.** The next auto-renewal date for an auto-renewing
   subscription, the expiration date otherwise, and the termination date when one
   is on record. The end of the current service term is never used as a renewal

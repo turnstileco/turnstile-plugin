@@ -24,6 +24,9 @@ First public release.
 - **Says what it checked.** The headline states what the counts are out of,
   and the answer never says "nothing" when the list was incomplete, the run
   was narrowed, or a subscription could not be read.
+- **Asks before using a customer it only partly matched.** "Acme" finding "Old
+  Acme Holdings" gets a question first, and nothing is fetched for that customer
+  until the user confirms it. An exact match, ignoring case, goes straight through.
 - **Money in minor units, one currency per total.**
 - **Read-only.** It never amends, marks a milestone complete, notifies, or
   schedules anything.
